@@ -1,25 +1,38 @@
 {
-  "name": "Octotree",
+  "name": "Code Tree",
   "version": "$VERSION",
-  "description": "GitHub on steroids",
-  "homepage_url": "https://www.octotree.io",
-  "author": "Buu Nguyen",
-  "manifest_version": 2,
-  "minimum_chrome_version": "60",
+  "description": "Code tree sidebar for GitHub and GitLab",
+  "manifest_version": 3,
+  "minimum_chrome_version": "88",
   "icons": {
     "128": "icons/icon128.png"
   },
-  "permissions": ["https://api.github.com/*", "storage"],
-  "optional_permissions": ["<all_urls>"],
-  "web_accessible_resources": ["*.woff2", "*.png", "*.gif"],
+  "permissions": ["storage", "scripting"],
+  "host_permissions": [
+    "https://github.com/*",
+    "https://api.github.com/*",
+    "https://gitlab.com/*"
+  ],
+  "optional_host_permissions": ["<all_urls>"],
+  "web_accessible_resources": [
+    {
+      "resources": ["*.woff2", "*.png", "*.gif"],
+      "matches": ["<all_urls>"]
+    }
+  ],
   "background": {
-    "scripts": ["background.js"],
-    "persistent": true
+    "service_worker": "background.js"
   },
   "content_scripts": [
     {
       "run_at": "document_start",
       "matches": ["https://github.com/*"],
+      "js": ["content.js"],
+      "css": ["content.css"]
+    },
+    {
+      "run_at": "document_start",
+      "matches": ["https://gitlab.com/*"],
       "js": ["content.js"],
       "css": ["content.css"]
     }

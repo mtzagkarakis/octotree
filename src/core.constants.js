@@ -4,7 +4,10 @@ const SHOW_CLASS = 'octotree-show';
 const PINNED_CLASS = 'octotree-pinned';
 
 const STORE = {
-  TOKEN: 'octotree.token.local',
+  TOKEN: 'octotree.token',                            // Legacy GitHub token (kept for migration)
+  GITHUB_TOKEN: 'octotree.github_token',              // github.com token - stored in chrome.storage.local
+  GITLAB_TOKEN: 'octotree.gitlab_token',              // gitlab.com token - stored in chrome.storage.local
+  CUSTOM_INSTANCES: 'octotree.custom_instances',       // [{url, type, token}] - in chrome.storage.local
   HOVEROPEN: 'octotree.hover_open',
   PR: 'octotree.prdiff_shown',
   HOTKEYS: 'octotree.hotkeys',
@@ -19,6 +22,9 @@ const STORE = {
 
 const DEFAULTS = {
   TOKEN: '',
+  GITHUB_TOKEN: '',
+  GITLAB_TOKEN: '',
+  CUSTOM_INSTANCES: [],
   HOVEROPEN: true,
   PR: true,
   LAZYLOAD: false,

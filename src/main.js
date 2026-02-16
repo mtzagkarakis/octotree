@@ -1,5 +1,5 @@
 $(document).ready(() => {
-  octotree.load(loadExtension);
+  codeTree.load(loadExtension);
 
   async function loadExtension(activationOpts = {}) {
     const $html = $('html');
@@ -10,7 +10,25 @@ $(document).ready(() => {
     const $views = $sidebar.find('.octotree-view');
     const $spinner = $sidebar.find('.octotree-spin');
     const $pinner = $sidebar.find('.octotree-pin');
-    const adapter = new GitHub();
+    const adapter = await (async function detectAdapter() {
+      const host = window.location.hostname;
+
+      // Check custom instances
+      const instances = await extStore.get(STORE.CUSTOM_INSTANCES) || [];
+      const custom = instances.find(function(inst) {
+        try { return new URL(inst.url).hostname === host; }
+        catch (e) { return false; }
+      });
+      if (custom) {
+        return custom.type === 'gitlab' ? new GitLab() : new GitHub();
+      }
+
+      // Built-in detection
+      if (host === 'gitlab.com' || document.querySelector('meta[content="GitLab"]')) {
+        return new GitLab();
+      }
+      return new GitHub();
+    })();
     const treeView = new TreeView($dom, adapter);
     const optsView = new OptionsView($dom, adapter);
     const helpPopup = new HelpPopup($dom);
@@ -74,7 +92,7 @@ $(document).ready(() => {
     adapter.init($sidebar);
     await helpPopup.init();
 
-    await octotree.activate(
+    await codeTree.activate(
       {
         adapter,
         $document,
@@ -104,6 +122,9 @@ $(document).ready(() => {
 
         switch (storeKey) {
           case STORE.TOKEN:
+          case STORE.GITHUB_TOKEN:
+          case STORE.GITLAB_TOKEN:
+          case STORE.CUSTOM_INSTANCES:
           case STORE.LAZYLOAD:
           case STORE.ICONS:
             reload = true;
@@ -123,7 +144,7 @@ $(document).ready(() => {
         }
       });
 
-      if (await octotree.applyOptions(changes)) {
+      if (await codeTree.applyOptions(changes)) {
         reload = true;
       }
 
@@ -133,7 +154,7 @@ $(document).ready(() => {
     }
 
     async function tryLoadRepo(reload) {
-      const token = await octotree.getAccessToken();
+      const token = await codeTree.getAccessToken();
       await adapter.getRepoFromPath(currRepo, token, async (err, repo) => {
         if (err) {
           // Error making API, likely private repo but no token

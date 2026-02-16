@@ -9,15 +9,23 @@ class ExtStore {
       this._removeInExtensionStorage = promisify(chrome.storage.local, 'remove');
     }
 
-    // Initialize default values
-    this._init = Promise.all(
-      Object.keys(values).map(async (key) => {
-        const existingVal = await this._innerGet(values[key]);
-        if (existingVal == null) {
-          await this._innerSet(values[key], defaults[key]);
-        }
-      })
-    ).then(() => {
+    // Migrate tokens from localStorage to chrome.storage.local (one-time)
+    // Old keys ended with '.local' which routed them to insecure localStorage
+    this._init = this._migrateFromLocalStorage([
+      ['octotree.token.local', values.TOKEN],
+      ['octotree.github_token.local', values.GITHUB_TOKEN],
+      ['octotree.gitlab_token.local', values.GITLAB_TOKEN]
+    ]).then(() => {
+      // Initialize default values
+      return Promise.all(
+        Object.keys(values).map(async (key) => {
+          const existingVal = await this._innerGet(values[key]);
+          if (existingVal == null) {
+            await this._innerSet(values[key], defaults[key]);
+          }
+        })
+      );
+    }).then(() => {
       this._init = null;
       this._setupOnChangeEvent();
     });
@@ -43,6 +51,30 @@ class ExtStore {
 
   _isOctotreeKey(key) {
     return key.startsWith('octotree');
+  }
+
+  // Migrate tokens from localStorage to chrome.storage.local
+  async _migrateFromLocalStorage(keyPairs) {
+    if (this._isSafari) return;
+    for (const [oldKey, newKey] of keyPairs) {
+      try {
+        const raw = localStorage.getItem(oldKey);
+        if (raw != null) {
+          let value;
+          try { value = JSON.parse(raw); } catch (e) { value = raw; }
+          if (value) {
+            // Only migrate if the new key doesn't already have a value
+            const existing = await this._getInExtensionStorage(newKey);
+            if (existing[newKey] == null) {
+              await this._setInExtensionStorage({[newKey]: value});
+            }
+          }
+          localStorage.removeItem(oldKey);
+        }
+      } catch (e) {
+        // Ignore migration errors
+      }
+    }
   }
 
   // Debounce and group the trigger of EVENT.STORE_CHANGE because the
@@ -134,7 +166,7 @@ class ExtStore {
           localStorage.setItem(key, value);
         } catch (e) {
           const msg =
-            'Octotree cannot save its settings. ' +
+            'Cannot save settings. ' +
             'If the local storage for this domain is full, please clean it up and try again.';
           console.error(msg, e);
         }

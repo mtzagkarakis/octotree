@@ -70,7 +70,7 @@ class Adapter {
             // Uses `type` as class name for tree node
             item.icon = type;
 
-            await octotree.setNodeIconAndText(this, item);
+            await codeTree.setNodeIconAndText(this, item);
 
             if (item.patch) {
               item.text += `<span class="octotree-patch">${this.buildPatchHtml(item)}</span>`;
@@ -159,7 +159,7 @@ class Adapter {
         break;
       case 401:
         error = 'Invalid token';
-        message = await octotree.getInvalidTokenMessage({
+        message = await codeTree.getInvalidTokenMessage({
           responseStatus: jqXHR.status,
           requestHeaders: settings.headers
         });
@@ -167,21 +167,20 @@ class Adapter {
       case 404:
         error = 'Private repository';
         message =
-          'Accessing private repositories requires a GitHub access token. ' +
+          'Accessing private repositories requires an access token. ' +
           'Please go to <a class="settings-btn">Settings</a> and enter a token.';
         break;
       case 403:
         if (jqXHR.getResponseHeader('X-RateLimit-Remaining') === '0') {
-          // It's kinda specific for GitHub
           error = 'API limit exceeded';
           message =
-            'You have exceeded the <a href="https://developer.github.com/v3/#rate-limiting">GitHub API rate limit</a>. ' +
-            'To continue using Octotree, you need to provide a GitHub access token. ' +
+            'You have exceeded the API rate limit. ' +
+            'To continue, you need to provide an access token. ' +
             'Please go to <a class="settings-btn">Settings</a> and enter a token.';
         } else {
           error = 'Forbidden';
           message =
-            'Accessing private repositories requires a GitHub access token. ' +
+            'Accessing private repositories requires an access token. ' +
             'Please go to <a class="settings-btn">Settings</a> and enter a token.';
         }
 
@@ -200,7 +199,7 @@ class Adapter {
   }
 
   /**
-   * Returns the CSS class to be added to the Octotree sidebar.
+   * Returns the CSS class to be added to the sidebar.
    * @api public
    */
   getCssClass() {
@@ -309,12 +308,7 @@ class Adapter {
 
     link.setAttribute('href', downloadUrl);
 
-    // Github will redirect to a different origin (host) for downloading the file.
-    // However, the new host hasn't been added in the Content-Security-Policy header from
-    // Github so the browser won't save the file, it navigates to the file instead.
-    // Using '_blank' as a trick to not being navigated
-    // See more about Content Security Policy at
-    // https://www.html5rocks.com/en/tutorials/security/content-security-policy/
+    // Using '_blank' to avoid navigation due to CSP restrictions on download redirects
     link.setAttribute('target', '_blank');
 
     link.click();

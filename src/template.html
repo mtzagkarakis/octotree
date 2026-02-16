@@ -1,12 +1,12 @@
 <div>
   <nav class="octotree-sidebar">
     <div class="octotree-toggle">
-      <i class="octotree-toggle-icon" role="button"></i> <span>Octotree</span>
+      <i class="octotree-toggle-icon" role="button"></i> <span>Code Tree</span>
 
       <div class="popup">
         <div class="arrow"></div>
         <div class="content">
-          Hi there, this is Octotree. Move mouse over this button to display the code tree. You can also press the
+          Move mouse over this button to display the code tree. You can also press the
           shortkey <kbd>cmd shift s</kbd> (or <kbd>ctrl shift s</kbd>).
         </div>
       </div>
@@ -40,32 +40,44 @@
           <div>
             <label>GitHub access token</label>
             <div class="octotree-token-actions">
-              <a class="octotree-create-token" target="_blank" tabindex="-1"
-                ><!--
-                --><span class="tooltipped tooltipped-n" aria-label="Generate new token"
+              <a class="octotree-create-token octotree-create-github-classic-token" target="_blank" tabindex="-1"
+                ><span class="tooltipped tooltipped-n" aria-label="Classic token (works with all repos)"
                   ><i class="octotree-icon-key"></i></span
-                ><!--
-              --></a>
-              <a
-                class="octotree-help"
-                href="https://github.com/ovity/octotree#access-token"
-                target="_blank"
-                tabindex="-1"
-              >
-                <span class="tooltipped tooltipped-n" aria-label="Learn more">
-                  <i class="octotree-icon-help"></i>
-                </span>
-              </a>
+                ></a>
+              <a class="octotree-create-token octotree-create-github-finegrained-token" target="_blank" tabindex="-1"
+                ><span class="tooltipped tooltipped-n" aria-label="Fine-grained token (your repos only)"
+                  ><i class="octotree-icon-key"></i></span
+                ></a>
             </div>
-            <input type="text" class="form-control input-block" data-store="TOKEN" />
-            <div class="octotree-disclaimer text-gray">Token is stored in local storage</div>
+            <input type="text" class="form-control input-block" data-store="GITHUB_TOKEN" placeholder="Classic or fine-grained token" />
+          </div>
+
+          <div>
+            <label>GitLab access token</label>
+            <div class="octotree-token-actions">
+              <a class="octotree-create-token octotree-create-gitlab-token" target="_blank" tabindex="-1"
+                ><span class="tooltipped tooltipped-n" aria-label="Generate new token"
+                  ><i class="octotree-icon-key"></i></span
+                ></a>
+            </div>
+            <input type="text" class="form-control input-block" data-store="GITLAB_TOKEN" placeholder="For gitlab.com repos" />
+          </div>
+
+          <div>
+            <label>Self-hosted instances</label>
+            <div class="octotree-custom-instance-list"></div>
+            <button type="button" class="btn btn-sm octotree-add-instance">+ Add instance</button>
+          </div>
+
+          <div>
+            <div class="octotree-disclaimer text-gray">All tokens are stored locally in your browser</div>
           </div>
 
           <div>
             <div>
               <label>Hotkeys</label>
               <div class="octotree-token-actions">
-                <a class="octotree-help" href="https://github.com/ovity/octotree#hotkeys" target="_blank" tabindex="-1">
+                <a class="octotree-help" href="#" target="_blank" tabindex="-1">
                   <span class="tooltipped tooltipped-n" aria-label="Learn more">
                     <i class="octotree-icon-help"></i>
                   </span>

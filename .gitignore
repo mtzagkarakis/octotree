@@ -2,6 +2,8 @@ node_modules
 tmp
 dist
 .idea
+.claude
+.vscode
 submissions.txt
 npm-debug.log
-.vscode
+generate-icons.js

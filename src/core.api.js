@@ -40,9 +40,15 @@ const GH_RESERVED_REPO_NAMES = ['followers', 'following', 'repositories'];
 const GH_404_SEL = '#parallax_wrapper';
 const GH_RAW_CONTENT = 'body > pre';
 
-class OctotreeService {
+const GL_RESERVED_USER_NAMES = [
+  'admin', 'dashboard', 'explore', 'groups', 'help',
+  'projects', 'search', 'snippets', 'users', '-'
+];
+
+class CodeTreeService {
   constructor() {
     this.reset();
+    this._migrated = false;
   }
 
   // Hooks
@@ -59,19 +65,49 @@ class OctotreeService {
 
   reset() {
     this.getAccessToken = this._getAccessToken;
-    this.shouldShowOctotree = this._shouldShowOctotree;
+    this.shouldShowSidebar = this._shouldShowSidebar;
     this.getInvalidTokenMessage = this._getInvalidTokenMessage;
     this.setNodeIconAndText = this._setNodeIconAndText;
   }
 
   // Private
-  _getAccessToken() {
-    return window.extStore.get(window.STORE.TOKEN);
+  async _getAccessToken() {
+    // One-time migration: old TOKEN → GITHUB_TOKEN
+    if (!this._migrated) {
+      this._migrated = true;
+      const oldToken = await window.extStore.get(window.STORE.TOKEN);
+      const newGHToken = await window.extStore.get(window.STORE.GITHUB_TOKEN);
+      if (oldToken && !newGHToken) {
+        await window.extStore.set(window.STORE.GITHUB_TOKEN, oldToken);
+      }
+    }
+
+    const host = window.location.hostname;
+
+    // Check custom instances first
+    const instances = await window.extStore.get(window.STORE.CUSTOM_INSTANCES) || [];
+    const custom = instances.find(function(inst) {
+      try { return new URL(inst.url).hostname === host; }
+      catch (e) { return false; }
+    });
+    if (custom && custom.token) return custom.token;
+
+    // Built-in instances
+    if (host === 'github.com') {
+      return (await window.extStore.get(window.STORE.GITHUB_TOKEN)) ||
+             (await window.extStore.get(window.STORE.TOKEN));  // Legacy fallback
+    }
+    if (host === 'gitlab.com') {
+      return await window.extStore.get(window.STORE.GITLAB_TOKEN);
+    }
+
+    // GitHub Enterprise or unknown -- try legacy token
+    return await window.extStore.get(window.STORE.TOKEN);
   }
 
   _getInvalidTokenMessage({responseStatus, requestHeaders}) {
     return (
-      'The GitHub access token is invalid. ' +
+      'The access token is invalid. ' +
       'Please go to <a class="settings-btn">Settings</a> and update the token.'
     );
   }
@@ -87,7 +123,17 @@ class OctotreeService {
     }
   }
 
-  async _shouldShowOctotree() {
+  async _shouldShowSidebar() {
+    // GitLab detection
+    const isGitLab = document.querySelector('meta[content="GitLab"]');
+    if (isGitLab) {
+      const segments = window.location.pathname.split('/').filter(Boolean);
+      if (segments.length < 2) return false;
+      if (~GL_RESERVED_USER_NAMES.indexOf(segments[0])) return false;
+      return true;
+    }
+
+    // GitHub detection (default)
     if ($(GH_404_SEL).length) {
       return false;
     }
@@ -115,4 +161,4 @@ class OctotreeService {
   }
 }
 
-window.octotree = new OctotreeService();
+window.codeTree = new CodeTreeService();

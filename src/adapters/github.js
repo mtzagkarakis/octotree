@@ -69,8 +69,8 @@ class GitHub extends PjaxAdapter {
   // @override
   getCreateTokenUrl() {
     return (
-      `${location.protocol}//${location.host}/settings/tokens/new?` +
-      'scopes=repo&description=Octotree%20browser%20extension'
+      `${location.protocol}//${location.host}/settings/tokens/new` +
+      '?scopes=repo&description=Code+Tree+browser+extension'
     );
   }
 
@@ -102,7 +102,7 @@ class GitHub extends PjaxAdapter {
 
   // @override
   async getRepoFromPath(currentRepo, token, cb) {
-    if (!await octotree.shouldShowOctotree()) {
+    if (!await codeTree.shouldShowSidebar()) {
       return cb();
     }
 
@@ -321,7 +321,7 @@ class GitHub extends PjaxAdapter {
     const cfg = {url, method: 'GET', cache: false};
 
     if (opts.token) {
-      cfg.headers = {Authorization: 'token ' + opts.token};
+      cfg.headers = {Authorization: 'Bearer ' + opts.token};
     }
 
     $.ajax(cfg)
